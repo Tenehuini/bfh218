@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#15180f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Hill 218">
+  <title>The Battle for Hill 218</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main id="app">
+
+    <!-- Pantalla 1: Presentación y opciones -->
+    <section class="screen home" id="screen-home" data-active>
+      <div class="home-hero">
+        <img class="home-logo" src="assets/logo.webp" alt="">
+        <h1 class="title"><img src="assets/title.webp" alt="The Battle for Hill 218"></h1>
+        <p class="tagline">Desplegá tus unidades, cuidá la línea de suministro y ocupá la base enemiga.</p>
+      </div>
+
+      <div class="options">
+        <fieldset class="opt">
+          <legend>Contra quién jugás</legend>
+          <div class="choice-list" id="opt-mode">
+            <label class="choice"><input type="radio" name="mode" value="hard"><span><strong>Computadora (difícil)</strong><small>Busca la mejor jugada.</small></span></label>
+            <label class="choice"><input type="radio" name="mode" value="easy"><span><strong>Computadora (fácil)</strong><small>Se equivoca bastante seguido.</small></span></label>
+            <label class="choice"><input type="radio" name="mode" value="two"><span><strong>Otra persona</strong><small>Dos jugadores, pasándose el celular.</small></span></label>
+          </div>
+        </fieldset>
+        <fieldset class="opt">
+          <legend id="color-legend">Tu ejército</legend>
+          <div class="seg" id="opt-color">
+            <label><input type="radio" name="color" value="blue"><span><i class="dot blue"></i>Azul</span></label>
+            <label><input type="radio" name="color" value="green"><span><i class="dot green"></i>Verde</span></label>
+          </div>
+        </fieldset>
+        <fieldset class="opt">
+          <legend id="order-legend">Empezás</legend>
+          <div class="seg" id="opt-order">
+            <label><input type="radio" name="order" value="first"><span id="order-first">Primero</span></label>
+            <label><input type="radio" name="order" value="second"><span id="order-second">Segundo</span></label>
+            <label><input type="radio" name="order" value="random"><span>Al azar</span></label>
+          </div>
+        </fieldset>
+      </div>
+
+      <footer class="bottom stack">
+        <button id="continue-btn" class="btn btn-secondary" hidden>Continuar partida</button>
+        <button id="play-btn" class="btn btn-primary">Jugar</button>
+        <button id="rules-btn" class="btn btn-ghost">📜 Cómo se juega</button>
+        <p class="links"><button type="button" id="open-install" class="link-btn">📲 Cómo instalar la app</button></p>
+        <p class="credit">Juego de Darwin Kastle · Your Move Games · versión para PC de Andrew Gross</p>
+      </footer>
+    </section>
+
+    <!-- Pantalla 2: Partida -->
+    <section class="screen game" id="screen-game">
+      <header class="top">
+        <button class="back" id="quit-game" aria-label="Salir de la partida">×</button>
+        <h1 id="turn-title" class="game-title"></h1>
+        <p id="turn-sub" class="sub"></p>
+        <button class="help" id="game-rules" aria-label="Reglas">?</button>
+      </header>
+
+      <button type="button" class="armies" id="armies" aria-label="Ver los ejércitos y las bajas">
+        <span class="army" id="army-0"></span>
+        <span class="army" id="army-1"></span>
+      </button>
+
+      <div class="board-wrap" id="board-wrap">
+        <div class="board" id="board"></div>
+      </div>
+
+      <div class="prompt" id="prompt" role="status" aria-live="polite">
+        <ul class="log" id="log"></ul>
+        <p class="prompt-text" id="prompt-text"></p>
+        <div class="prompt-btns" id="prompt-btns"></div>
+      </div>
+
+      <div class="hand" id="hand" aria-label="Tu mano"></div>
+    </section>
+
+  </main>
+
+  <!-- Pasar el celular (dos jugadores) -->
+  <div class="cover" id="cover" hidden>
+    <div class="cover-box">
+      <p class="cover-emoji">📱</p>
+      <h2 id="cover-title"></h2>
+      <p id="cover-text">Pasale el celular. Que el otro jugador no mire la mano.</p>
+      <button type="button" id="cover-ok" class="btn btn-primary">Estoy listo</button>
+    </div>
+  </div>
+
+  <!-- Carta en grande -->
+  <dialog id="zoom-dialog" class="sheet zoom" aria-labelledby="zoom-title">
+    <h2 id="zoom-title"></h2>
+    <div class="sheet-body">
+      <img id="zoom-img" class="zoom-img" alt="">
+      <ul id="zoom-info" class="zoom-info"></ul>
+    </div>
+    <button type="button" id="zoom-ok" class="btn btn-primary">Cerrar</button>
+  </dialog>
+
+  <!-- Ejércitos y bajas -->
+  <dialog id="losses-dialog" class="sheet" aria-labelledby="losses-title">
+    <h2 id="losses-title">Ejércitos</h2>
+    <div class="sheet-body" id="losses-body"></div>
+    <button type="button" id="losses-ok" class="btn btn-primary">Cerrar</button>
+  </dialog>
+
+  <!-- Fin de la partida -->
+  <dialog id="end-dialog" class="sheet end" aria-labelledby="end-title">
+    <p class="end-emoji" id="end-emoji"></p>
+    <h2 id="end-title"></h2>
+    <p id="end-msg" class="end-msg"></p>
+    <button type="button" id="end-again" class="btn btn-primary">Jugar de nuevo</button>
+    <button type="button" id="end-board" class="btn btn-secondary">Ver el tablero</button>
+    <button type="button" id="end-home" class="btn btn-ghost">Volver al inicio</button>
+  </dialog>
+
+  <!-- Confirmar salida -->
+  <dialog id="quit-dialog" class="sheet" aria-labelledby="quit-title">
+    <h2 id="quit-title">¿Salir de la partida?</h2>
+    <p class="end-msg">Vas a poder continuarla desde la pantalla de inicio.</p>
+    <button type="button" id="quit-yes" class="btn btn-primary">Salir</button>
+    <button type="button" id="quit-no" class="btn btn-ghost">Seguir jugando</button>
+  </dialog>
+
+  <!-- Reglas -->
+  <dialog id="rules-dialog" class="sheet" aria-labelledby="rules-title">
+    <h2 id="rules-title">Cómo se juega</h2>
+    <div class="sheet-body">
+      <h3>Objetivo</h3>
+      <p>Dos ejércitos, <b>azul</b> y <b>verde</b>, pelean por la Colina 218. Ganás de una de estas dos formas:</p>
+      <ul>
+        <li><b>Ocupando la base enemiga</b>: si desplegás una unidad ahí, ganás en el acto.</li>
+        <li>Si a los dos se les terminan las cartas (mazo, mano y ataques aéreos), gana quien tenga <b>más unidades en el tablero</b>.</li>
+      </ul>
+      <h3>El tablero</h3>
+      <p>En el centro está la <b>Colina 218</b>: nadie puede desplegar ahí. Tu base es el lugar pegado a la colina de tu lado (abajo) y la base enemiga, el del otro lado (arriba). Las unidades se despliegan en lugares libres, formando una grilla a medida que se juega.</p>
+      <h3>Preparación</h3>
+      <p>Cada ejército tiene 24 unidades: 7 Infantería, 5 Armas pesadas, 3 Fuerzas especiales, 3 Tanques, 3 Artillerías y 3 Paracaidistas, más 2 <b>Ataques aéreos</b> aparte. Cada jugador roba 5 cartas y elige 2 para poner debajo de su mazo: empieza con 3 unidades y los 2 ataques aéreos.</p>
+      <h3>Turnos</h3>
+      <p>En cada turno robás 2 cartas y jugás 2. Solo en el primer turno de la partida, quien empieza roba 1 y juega 1. Jugar una carta es <b>desplegar una unidad</b> o <b>usar un ataque aéreo</b>. Cuando se te acaba el mazo seguís jugando lo que tengas en la mano.</p>
+      <h3>Despliegue y suministro</h3>
+      <p>Siempre podés desplegar en tu base si está libre. En cualquier otro lugar, la unidad tiene que <b>recibir suministro</b>: estar al lado de una unidad tuya que tenga una cadena de unidades (línea de suministro) hasta tu base.</p>
+      <ul>
+        <li>Casi todas las unidades reciben suministro de una unidad vecina en <b>horizontal o vertical</b>.</li>
+        <li>Las <b>Fuerzas especiales</b> lo reciben en <b>diagonal</b>.</li>
+        <li>Los <b>Paracaidistas</b> pueden caer en cualquier lugar libre sin suministro, salvo en la base enemiga.</li>
+      </ul>
+      <p>Si tu base queda vacía, solo podés desplegar en ella, tirar Paracaidistas o usar un ataque aéreo. Una unidad que se queda sin suministro sigue en juego, pero no sirve para desplegar otras a su lado hasta que se reconecte.</p>
+      <h3>Ataque</h3>
+      <p>Al desplegarse, una unidad <b>ataca a una unidad enemiga</b> si puede (si hay varias, elegís cuál). Después ya no ataca: solo apoya.</p>
+      <ul>
+        <li><b>Infantería, Paracaidistas y Fuerzas especiales</b>: atacan en horizontal o vertical y <b>necesitan apoyo</b>.</li>
+        <li><b>Armas pesadas</b>: atacan en diagonal y necesitan apoyo.</li>
+        <li><b>Tanque</b>: ataca en horizontal o vertical <b>sin necesitar apoyo</b>.</li>
+        <li><b>Artillería</b>: ataca 2 lugares hacia adelante, a los costados de ese lugar o 3 hacia adelante, sin necesitar apoyo.</li>
+      </ul>
+      <p>El ataque siempre destruye al blanco: lo que importa es si se puede hacer. El juego te marca en rojo los blancos posibles.</p>
+      <h3>Apoyo</h3>
+      <p>Un ataque tiene apoyo si otra unidad tuya ya en juego está <b>al lado del blanco</b> (en horizontal o vertical). Las <b>Armas pesadas</b> apoyan también en diagonal.</p>
+      <h3>Ataque aéreo</h3>
+      <p>En lugar de jugar una unidad podés usar un ataque aéreo: destruye <b>cualquier</b> unidad enemiga del tablero. Cada uno se usa una sola vez.</p>
+      <h3>En esta app</h3>
+      <ul>
+        <li>Tocá una carta de tu mano y después un lugar marcado en verde. Si hay blancos, tocá uno de los marcados en rojo.</li>
+        <li>Tocá una carta del tablero para verla en grande. Tocá la barra de los ejércitos para ver las bajas.</li>
+        <li>Lo último que jugó el rival queda marcado en amarillo.</li>
+        <li>Si ninguna carta de tu mano se puede jugar, descartás una (en el original el juego se trababa).</li>
+      </ul>
+      <p>Reglas originales de <a href="https://www.yourmovegames.com/" target="_blank" rel="noopener">Your Move Games</a>. Diseño: Darwin Kastle.</p>
+    </div>
+    <button type="button" id="rules-ok" class="btn btn-primary">Entendido</button>
+  </dialog>
+
+  <!-- Cómo instalar -->
+  <dialog id="install-dialog" class="sheet" aria-labelledby="install-title">
+    <h2 id="install-title">Instalar la app</h2>
+    <p id="install-done" class="install-note" hidden>✅ Ya estás usando la app instalada.</p>
+    <div class="install-tabs" role="tablist">
+      <button type="button" role="tab" class="install-tab" data-os="android" aria-selected="true">Android</button>
+      <button type="button" role="tab" class="install-tab" data-os="ios" aria-selected="false">iPhone</button>
+    </div>
+    <div class="sheet-body">
+      <div class="install-panel" data-os="android" role="tabpanel">
+        <ol>
+          <li>Abrí esta página en <b>Chrome</b> (o en el navegador que uses: Samsung Internet, Edge, Firefox…):<span class="install-url"><code>https://tenehuini.github.io/bfh218/</code><button type="button" class="copy-url" data-url="https://tenehuini.github.io/bfh218/">Copiar</button></span></li>
+          <li>Tocá el menú del navegador: <b>⋮</b> (tres puntos) o <b>≡</b> (tres rayas), arriba o abajo a la derecha.</li>
+          <li>Elegí <b>Instalar app</b>. Si no aparece, buscá <b>Agregar a pantalla principal</b> o <b>Agregar página a → Pantalla de inicio</b>.</li>
+          <li>Confirmá con <b>Instalar</b> o <b>Agregar</b>.</li>
+        </ol>
+        <p class="install-note">El ícono de la mira con la colina queda en la pantalla de inicio, como cualquier app.</p>
+      </div>
+      <div class="install-panel" data-os="ios" role="tabpanel" hidden>
+        <ol>
+          <li>Abrí esta página en <b>Safari</b> (es lo más seguro; en otros navegadores no siempre aparece la opción):<span class="install-url"><code>https://tenehuini.github.io/bfh218/</code><button type="button" class="copy-url" data-url="https://tenehuini.github.io/bfh218/">Copiar</button></span></li>
+          <li>Tocá el botón <b>Compartir</b>: el cuadrado con una flecha hacia arriba ⬆️. Según la versión está en la barra de abajo, arriba, o dentro del menú <b>⋯</b>.</li>
+          <li>Deslizá hacia abajo y elegí <b>Agregar a inicio</b> (o <b>Agregar a pantalla de inicio</b>).</li>
+          <li>Tocá <b>Agregar</b>, arriba a la derecha.</li>
+        </ol>
+        <p class="install-note">El ícono queda en la pantalla de inicio. Funciona igual en iPad.</p>
+      </div>
+      <p class="install-note">Una vez abierta con internet, la app funciona sin conexión.</p>
+    </div>
+    <button type="button" id="install-ok" class="btn btn-primary">Entendido</button>
+  </dialog>
+
+  <script src="game.js"></script>
+  <script src="ai.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
