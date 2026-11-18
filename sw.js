@@ -1,6 +1,6 @@
 // Cache offline: el juego funciona sin conexión una vez abierto.
 // Al publicar cambios, subir el número de CACHE para que los celulares bajen los archivos nuevos.
-const CACHE = 'bfh218-v1';
+const CACHE = 'bfh218-v2';
 const FILES = [
   './', 'index.html', 'styles.css', 'game.js', 'ai.js', 'app.js', 'manifest.json',
   'assets/logo.webp', 'assets/title.webp', 'assets/icon-192.png', 'assets/icon-512.png',

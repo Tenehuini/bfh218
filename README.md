@@ -46,8 +46,9 @@ Ver el botón **📜 Cómo se juega** en la app. En la pantalla de inicio se eli
 - **Tu ejército**: azul o verde.
 - **Empezás**: primero, segundo o al azar.
 
-Durante la partida, tocá una carta del tablero para verla en grande y la barra de los ejércitos para ver
-las bajas.
+Durante la partida, mantené presionada cualquier carta (de la mano o del tablero) para verla bien grande
+(se cierra al soltarla). Tocá una carta del tablero para ver su información y la barra de los ejércitos
+para ver las bajas.
 
 ## Estructura
 

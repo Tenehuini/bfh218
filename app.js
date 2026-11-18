@@ -204,11 +204,13 @@ function renderBoard() {
         b.classList.add('has-unit');
         const img = el('img'); img.src = imgSrc('hill'); img.alt = 'Colina 218';
         b.append(img);
+        b.dataset.peek = img.src;
       } else if (u) {
         b.classList.add('has-unit');
         if (u.o !== v) b.classList.add('is-enemy');
         const img = el('img'); img.src = imgSrc(u.t, g.colors[u.o]); img.alt = '';
         b.append(img);
+        b.dataset.peek = img.src;
         b.setAttribute('aria-label', `${nm(u.t)} ${u.o === v ? 'propia' : 'enemiga'}`);
         if (last.has(c)) b.classList.add('is-last');
         if (mineNew.has(c)) b.classList.add('is-mine-new');
@@ -315,6 +317,7 @@ function renderHand() {
       const out = mullSel.includes(i);
       b.classList.toggle('is-out', out);
       b.append(img, el('span', '', out ? '↓ Al fondo' : nm(t)));
+      b.dataset.peek = img.src;
       b.addEventListener('click', () => toggleMull(i));
       return b;
     }));
@@ -329,6 +332,7 @@ function renderHand() {
     b.type = 'button';
     const img = el('img'); img.src = imgSrc(t, color); img.alt = '';
     b.append(img, el('span', '', nm(t)));
+    b.dataset.peek = img.src;
     if (n > 1) b.append(el('b', 'count', `×${n}`));
     b.setAttribute('aria-label', `${nm(t)}${n > 1 ? `, ${n} cartas` : ''}`);
     if (sel === t) b.classList.add('is-sel');
@@ -506,6 +510,7 @@ function openLosses() {
       const n = t === AIR ? pl.played[t] : pl.lost[t];
       const lost = el('span', 'lost' + (n ? '' : ' zero'), t === AIR ? `${n} usado${n === 1 ? '' : 's'}` : `${n} 💀`);
       row.append(img, info, lost);
+      row.dataset.peek = img.src;
       sec.append(row);
     }
     const lostTotal = pl.lost.reduce((a, b) => a + b, 0);
@@ -622,6 +627,46 @@ $('#install-ok').addEventListener('click', () => closeDialog($('#install-dialog'
 document.querySelectorAll('dialog.sheet:not(.end)').forEach((d) => d.addEventListener('click', (e) => {
   if (e.target === d) closeDialog(d);
 }));
+
+// ================= Carta ampliada (mantener presionado) =================
+const PEEK_MS = 380, PEEK_MOVE = 12;
+const peekDlg = $('#peek');
+let peekTimer = 0, peekStart = null, peekShown = false, peekSwallow = false;
+
+function peekCancel() { clearTimeout(peekTimer); peekTimer = 0; peekStart = null; }
+function peekHide() {
+  peekCancel();
+  if (!peekShown) return;
+  peekShown = false;
+  peekDlg.close();
+  peekSwallow = true; // el click que sigue al soltar no tiene que jugar la carta
+  setTimeout(() => { peekSwallow = false; }, 400);
+}
+
+document.addEventListener('pointerdown', (e) => {
+  if (e.button > 0) return;
+  const t = e.target.closest('[data-peek]');
+  if (!t || t.closest('.hand.is-hidden')) return;
+  peekCancel();
+  peekStart = { x: e.clientX, y: e.clientY };
+  peekTimer = setTimeout(() => {
+    peekTimer = 0;
+    $('#peek-img').src = t.dataset.peek;
+    peekDlg.showModal();
+    peekShown = true;
+    navigator.vibrate?.(15);
+  }, PEEK_MS);
+});
+document.addEventListener('pointermove', (e) => {
+  if (peekTimer && peekStart && Math.hypot(e.clientX - peekStart.x, e.clientY - peekStart.y) > PEEK_MOVE) peekCancel();
+});
+['pointerup', 'pointercancel'].forEach((ev) => document.addEventListener(ev, peekHide));
+window.addEventListener('blur', peekHide);
+document.addEventListener('click', (e) => {
+  if (peekSwallow) { e.preventDefault(); e.stopPropagation(); peekSwallow = false; }
+}, true);
+document.addEventListener('contextmenu', (e) => { if (e.target.closest('[data-peek]') || peekShown) e.preventDefault(); });
+peekDlg.addEventListener('cancel', (e) => { e.preventDefault(); peekHide(); });
 
 // ================= Arranque =================
 setPrefs({ mode: 'hard', color: 'blue', order: 'first' });
